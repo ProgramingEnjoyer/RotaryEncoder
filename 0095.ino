@@ -11,6 +11,8 @@ int currentStateCLK;
 int previousStateCLK;
 int encoderValue = 0; // We'll count the encoder steps in this variable
 unsigned long lastEncoderTime = 0; // Time of the last encoder change
+int buttonState; // Current state of the button
+int lastButtonState = HIGH; // Previous state of the button
 
 void setup() {
   Serial.begin(9600);
@@ -18,13 +20,21 @@ void setup() {
 
   pinMode(clkPin, INPUT);
   pinMode(dtPin, INPUT);
-  pinMode(swPin, INPUT_PULLUP);
+  pinMode(swPin, INPUT_PULLUP); // Set the button as input with internal pull-up resistor
 
   previousStateCLK = digitalRead(clkPin);
 }
 
 void loop() {
   currentStateCLK = digitalRead(clkPin);
+  buttonState = digitalRead(swPin); // Read the button state
+
+  // Check if button state has changed to LOW (button pressed)
+  if (buttonState == LOW && lastButtonState == HIGH) {
+    encoderValue = 0; // Reset encoder value
+    // Debounce delay to avoid accidental quick presses
+    delay(50); 
+  }
 
   if (currentStateCLK != previousStateCLK) {
     unsigned long currentMillis = millis(); // Get the current time
@@ -53,5 +63,6 @@ void loop() {
   }
 
   previousStateCLK = currentStateCLK;
+  lastButtonState = buttonState; // Update the last button state
   delay(1); // A short delay to reduce noise
 }
